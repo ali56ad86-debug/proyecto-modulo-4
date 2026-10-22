@@ -1,290 +1,274 @@
 
 /* =========================================
-        IMPORTACIONES
+   IMPORTACIONES
 ========================================= */
-import {
-    validarCampoObligatorio,
-    validarMonto,
-} from './utils/validators.js';
+import { Usuario } from './models/Usuario.js';
+import { Cuenta } from './models/Cuenta.js';
+import { generarNumeroCuenta } from './utils/helpers.js';
+import { validarCampoObligatorio } from './utils/validators.js';
 
-import {
-    generarId,
-} from './utils/helpers.js';
-
-import {
-    formatCurrency,
-    formatDate,
-    formatAccountNumber,
-} from './utils/formatters.js';
-
-import {
-    Usuario,
-} from './models/Usuario.js';
-
-import {
-    Cuenta,
-} from './models/Cuenta.js';
-
-import {
-    Movimiento,
-} from './models/Movimiento.js';
-
-import {
-    Banco,
-} from './models/Banco.js';
-
-/* =========================================
-        IMPORTAR SERVICIO DE PERSISTENCIA
-STORAGE_KEYS: contiene las claves oficiales.
-storageService: permite guardar y recuperar los datos.
-========================================= */
 import {
     STORAGE_KEYS,
     storageService,
 } from './services/StorageService.js';
 
-
-console.log(
-    'Sistema de Gestión Bancaria - v0.5.0',
-);
-
-
-// ==========================================
-// FUNCIONES DE PERSISTENCIA EN LOCAL STORAGE
-// ==========================================
-
-function guardarBanco(banco) {
-    storageService.guardar(
-        STORAGE_KEYS.USUARIOS,
-        banco.usuarios,
-    );
-
-    storageService.guardar(
-        STORAGE_KEYS.CUENTAS,
-        banco.cuentas,
-    );
-
-    storageService.guardar(
-        STORAGE_KEYS.MOVIMIENTOS,
-        banco.movimientos,
-    );
-}
-
-
-// ==========================================
-// FUNCION PARA CARGAR LOS DATOS DEL BANCO
-// ==========================================
-
-function cargarBanco() {
-    const usuariosGuardados =
-        storageService.obtener(
-            STORAGE_KEYS.USUARIOS,
-            [],
-        );
-
-    const cuentasGuardadas =
-        storageService.obtener(
-            STORAGE_KEYS.CUENTAS,
-            [],
-        );
-
-    const movimientosGuardados =
-        storageService.obtener(
-            STORAGE_KEYS.MOVIMIENTOS,
-            [],
-        );
-
-    // ==========================================
-    // RECONSTRUIMOS LAS INSTANCIAS
-    // PARA RECUPERAR USUARIO, Y SUS METODOS
-    // ==========================================
-    const usuarios =
-        usuariosGuardados.map(
-            (usuario) =>
-                new Usuario(usuario),
-        );
-
-    const cuentas =
-        cuentasGuardadas.map(
-            (cuenta) =>
-                new Cuenta(cuenta),
-        );
-
-    const movimientos =
-        movimientosGuardados.map(
-            (movimiento) =>
-                new Movimiento(
-                    movimiento,
-                ),
-        );
-
-    // ==========================================
-    // RECONSTRUIMOS NUEVAMENTE EL BANCO
-    // ==========================================
-    return new Banco({
-        usuarios,
-        cuentas,
-        movimientos,
-    });
-}
-
-
-// ==========================================
-// PRUEBAS DE UTILIDADES
-// ==========================================
-
-console.log(
-    'Campo obligatorio:',
-    validarCampoObligatorio(
-        'Banco Digital',
-    ),
-);
-
-console.log(
-    'Monto válido:',
-    validarMonto(1000),
-);
-
-console.log(
-    'ID generado:',
-    generarId(),
-);
-
-console.log(
-    'Monto formateado:',
-    formatCurrency(1500),
-);
-
-console.log(
-    'Fecha formateada:',
-    formatDate(new Date()),
-);
-
-console.log(
-    'Número de cuenta:',
-    formatAccountNumber(
-        '123456789012',
-    ),
-);
-
-
-// ==========================================
-// CARGAR BANCO PERSISTIDO
-// cargarBanco() primero busca información guardada antes de crear la instancia.
-// ==========================================
-
-const bancoDemo =
-    cargarBanco();
-
-
-// ==========================================
-// DATOS INICIALES
-// VALIDAR SI EL BANCO ESTÁ VACÍO
-// ==========================================
-
-if (bancoDemo.usuarios.length === 0) {
-
-    // CREAR USUARIO INICIAL DEMO
-    const usuarioDemo =
-        new Usuario({
-            nombre: 'Juan Suarez',
-            email:
-                'juan@correo.com',
-            telefono:
-                '5512345678',
-            password:
-                '123456',
-        });
-
-    // REGISTRAR USUARIO
-    bancoDemo.agregarUsuario(
-        usuarioDemo,
-    );
-
-    // CREAR CUENTA INICIAL DEMO
-    const cuentaDemo =
-        new Cuenta({
-            numeroCuenta:
-                '123456789012',
-            usuarioId:
-                usuarioDemo.id,
-        });
-
-    // REGISTRAR CUENTA
-    bancoDemo.agregarCuenta(
-        cuentaDemo,
-    );
-
-    // REALIZAR DEPÓSITO INICIAL DEMO
-    bancoDemo.realizarDeposito({
-        cuentaId:
-            cuentaDemo.id,
-        monto: 1000,
-        descripcion:
-            'Depósito inicial',
-    });
-
-    // GUARDAR BANCO DEMO
-    guardarBanco(
-        bancoDemo,
-    );
-
-    console.log(
-        'Datos iniciales creados y guardados.',
-    );
-}
-
-
-// ==========================================
-// COMPROBAR DATOS RECUPERADOS
-// ==========================================
-
-console.log(
-    'Banco recuperado:',
-    bancoDemo,
-);
-
-console.log(
-    'Usuarios almacenados:',
-    bancoDemo.usuarios,
-);
-
-console.log(
-    'Cuentas almacenadas:',
-    bancoDemo.cuentas,
-);
-
-console.log(
-    'Movimientos almacenados:',
-    bancoDemo.movimientos,
-);
-
-
-// ==========================================
-// OBTENER PRIMERA CUENTA
-// ==========================================
-const cuentaPrincipal =
-    bancoDemo.cuentas[0] || null;
+import { authService } from './services/AuthService.js';
 
 /* =========================================
-    SI EXISTE MOSTRAR SALDO PERSISTIDO
+   INICIALIZAR LOCALSTORAGE
 ========================================= */
-if (cuentaPrincipal) {
-    console.log(
-        'Saldo persistido:',
-        formatCurrency(
-            cuentaPrincipal.saldo,
-        ),
+function inicializarStorage() {
+    const usuarios = storageService.obtener(
+        STORAGE_KEYS.USUARIOS, null
     );
 
-    console.log(
-        '¿La cuenta recuperada sigue siendo una instancia de Cuenta?',
-        cuentaPrincipal
-            instanceof Cuenta,
+    const cuentas = storageService.obtener(
+        STORAGE_KEYS.CUENTAS, null
     );
 
-    console.log(
-        'Tipo de depositar:',
-        typeof cuentaPrincipal.depositar,
+    const movimientos = storageService.obtener(
+        STORAGE_KEYS.MOVIMIENTOS, null
     );
+
+    if (usuarios === null) {
+        storageService.guardar(STORAGE_KEYS.USUARIOS, []);
+    }
+
+    if (cuentas === null) {
+        storageService.guardar(STORAGE_KEYS.CUENTAS, []);
+    }
+
+    if (movimientos === null) {
+        storageService.guardar(STORAGE_KEYS.MOVIMIENTOS, []);
+    }
 }
+
+/* =========================================
+   REGISTRO DE USUARIO
+========================================= */
+function manejarRegistro(event) {
+    event.preventDefault();
+
+    const nombre = document.querySelector(
+        '#registroNombre'
+    ).value.trim();
+
+    const email = document.querySelector(
+        '#registroEmail'
+    ).value.trim().toLowerCase();
+
+    const telefono = document.querySelector(
+        '#registroTelefono'
+    ).value.trim();
+
+    const password = document.querySelector(
+        '#registroPassword'
+    ).value;
+
+    const confirmarPassword = document.querySelector(
+        '#registroConfirmPassword'
+    ).value;
+
+    // Validar campos obligatorios
+    if (
+        !validarCampoObligatorio(nombre) ||
+        !validarCampoObligatorio(email) ||
+        !validarCampoObligatorio(password)
+    ) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Completa los campos obligatorios.',
+        });
+        return;
+    }
+
+    // Validar longitud de contraseña
+    if (password.length < 6) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Contraseña inválida',
+            text: 'La contraseña debe tener al menos 6 caracteres.',
+        });
+        return;
+    }
+
+    // Comparar contraseñas
+    if (password !== confirmarPassword) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Contraseñas diferentes',
+            text: 'Las contraseñas no coinciden.',
+        });
+        return;
+    }
+
+    // Recuperar usuarios existentes
+    const usuarios = storageService.obtener(
+        STORAGE_KEYS.USUARIOS, []
+    );
+
+    // Comprobar correo duplicado
+    const emailExistente = usuarios.some(
+        (usuario) =>
+            usuario.email.toLowerCase() === email
+    );
+
+    if (emailExistente) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Correo registrado',
+            text: 'Ya existe un usuario con este correo.',
+        });
+        return;
+    }
+
+    // Crear usuario
+    const nuevoUsuario = new Usuario({
+        nombre,
+        email,
+        telefono,
+        password,
+    });
+
+    // Generar número de cuenta único
+    let numeroCuenta;
+
+    do {
+        numeroCuenta = generarNumeroCuenta();
+    } while (
+        storageService.obtener(
+            STORAGE_KEYS.CUENTAS, []
+        ).some(
+            (cuenta) =>
+                cuenta.numeroCuenta === numeroCuenta
+        )
+    );
+
+    // Crear cuenta bancaria
+    const nuevaCuenta = new Cuenta({
+        numeroCuenta,
+        tipo: 'Ahorro',
+        saldo: 0,
+        usuarioId: nuevoUsuario.id,
+    });
+
+    const cuentas = storageService.obtener(
+        STORAGE_KEYS.CUENTAS, []
+    );
+
+    usuarios.push(nuevoUsuario);
+    cuentas.push(nuevaCuenta);
+
+    // Guardar información
+    storageService.guardar(
+        STORAGE_KEYS.USUARIOS, usuarios
+    );
+
+    storageService.guardar(
+        STORAGE_KEYS.CUENTAS, cuentas
+    );
+
+    // Confirmar registro
+    Swal.fire({
+        icon: 'success',
+        title: 'Registro exitoso',
+        text: 'Tu usuario y cuenta bancaria fueron creados correctamente.',
+        confirmButtonText: 'Continuar',
+    }).then(() => {
+        document.querySelector(
+            '#formRegistro'
+        ).reset();
+
+        document.querySelector(
+            '#loginEmail'
+        ).value = email;
+    });
+}
+
+/* =========================================
+   INICIO DE SESIÓN
+========================================= */
+function manejarLogin(event) {
+    event.preventDefault();
+
+    const email = document.querySelector(
+        '#loginEmail'
+    ).value.trim().toLowerCase();
+
+    const password = document.querySelector(
+        '#loginPassword'
+    ).value;
+
+    if (
+        !validarCampoObligatorio(email) ||
+        !validarCampoObligatorio(password)
+    ) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Ingresa tu correo y contraseña.',
+        });
+        return;
+    }
+
+    try {
+        const usuario = authService.login(
+            email,
+            password
+        );
+
+        Swal.fire({
+            icon: 'success',
+            title: `Bienvenido, ${usuario.nombre}`,
+            text: 'Inicio de sesión correcto.',
+            timer: 1500,
+            showConfirmButton: false,
+        }).then(() => {
+            window.location.href = 'dashboard.html';
+        });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'No fue posible iniciar sesión',
+            text: error.message,
+        });
+    }
+}
+
+/* =========================================
+   INICIALIZACIÓN
+========================================= */
+function init() {
+    inicializarStorage();
+
+    // Comprobar sesión existente
+    if (authService.getCurrentUser()) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    const formLogin = document.querySelector(
+        '#formLogin'
+    );
+
+    const formRegistro = document.querySelector(
+        '#formRegistro'
+    );
+
+    if (formLogin) {
+        formLogin.addEventListener(
+            'submit',
+            manejarLogin
+        );
+    }
+
+    if (formRegistro) {
+        formRegistro.addEventListener(
+            'submit',
+            manejarRegistro
+        );
+    }
+}
+
+init();

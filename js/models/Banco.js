@@ -1,28 +1,14 @@
-/* =========================================
-   IMPORTAR MODELO MOVIMIENTO
-========================================= */
-/*
-    Banco utilizará Movimiento para crear
-    registros automáticos de las operaciones.
-*/
+
 import { Movimiento } from './Movimiento.js';
 
-
-/* =========================================
-   MODELO BANCO
-========================================= */
-
-/*
-    Coordina los usuarios, cuentas y movimientos
-    y concentra las reglas del dominio bancario.
-*/
 export class Banco {
+
+    /* =========================================
+       CONSTRUCTOR
+    ========================================= */
     constructor({
-        // Usuarios registrados
         usuarios = [],
-        // Cuentas registradas
         cuentas = [],
-        // Movimientos realizados
         movimientos = [],
     } = {}) {
         this.usuarios = usuarios;
@@ -30,231 +16,217 @@ export class Banco {
         this.movimientos = movimientos;
     }
 
-    /* =====================================
-       AGREGAR USUARIO
-    ===================================== */
-
+    /* =========================================
+       USUARIOS
+    ========================================= */
     agregarUsuario(usuario) {
         const existe = this.usuarios.some(
-            (u) => u.id === usuario.id,
+            (item) => item.id === usuario.id
         );
 
-        // No permitir usuarios duplicados
         if (existe) {
-            throw new Error(
-                'El usuario ya existe.',
-            );
+            throw new Error('El usuario ya existe.');
         }
 
-        // Registrar usuario
         this.usuarios.push(usuario);
-
         return usuario;
     }
 
-    /* =====================================
-       BUSCAR USUARIO POR ID
-    ===================================== */
-
     buscarUsuarioPorId(usuarioId) {
-        // find() devuelve el primer usuario cuyo ID coincida.
         return this.usuarios.find(
-            (usuario) =>
-                usuario.id === usuarioId,
+            (usuario) => usuario.id === usuarioId
         ) || null;
     }
 
-
-    /* =====================================
-       AGREGAR CUENTA
-    ===================================== */
-
+    /* =========================================
+       CUENTAS
+    ========================================= */
     agregarCuenta(cuenta) {
-        // Buscamos al propietario indicado por usuarioId.
-        const usuario =
-            this.buscarUsuarioPorId(
-                cuenta.usuarioId,
-            );
-
-        // No permitimos crear cuentas asociadas con usuarios inexistentes.
-        if (!usuario) {
-            throw new Error(
-                'El usuario propietario de la cuenta no existe.',
-            );
-        }
-
-        // Comprobamos si existe otra cuenta con el mismo ID o número.
-        const existe = this.cuentas.some(
-            (c) =>
-                c.id === cuenta.id ||
-                c.numeroCuenta ===
-                    cuenta.numeroCuenta,
+        const usuario = this.buscarUsuarioPorId(
+            cuenta.usuarioId
         );
 
-        // Evitar cuentas duplicadas
-        if (existe) {
+        if (!usuario) {
             throw new Error(
-                'La cuenta ya existe.',
+                'El usuario propietario de la cuenta no existe.'
             );
         }
 
-        // Registrar la cuenta
-        this.cuentas.push(cuenta);
+        const existe = this.cuentas.some(
+            (item) =>
+                item.id === cuenta.id ||
+                item.numeroCuenta === cuenta.numeroCuenta
+        );
 
+        if (existe) {
+            throw new Error('La cuenta ya existe.');
+        }
+
+        this.cuentas.push(cuenta);
         return cuenta;
     }
 
-
-    /* =====================================
-       BUSCAR CUENTA POR ID
-    ===================================== */
     buscarCuentaPorId(cuentaId) {
-
         return this.cuentas.find(
-            (cuenta) =>
-                cuenta.id === cuentaId,
+            (cuenta) => cuenta.id === cuentaId
         ) || null;
     }
 
-
-    /* =====================================
-       BUSCAR CUENTA POR NÚMERO
-    ===================================== */
     buscarCuentaPorNumero(numeroCuenta) {
-
         return this.cuentas.find(
-            (cuenta) =>
-                cuenta.numeroCuenta ===
-                numeroCuenta,
+            (cuenta) => cuenta.numeroCuenta === numeroCuenta
         ) || null;
     }
 
-
-    /* =====================================
-       OBTENER CUENTAS DE UN USUARIO
-    ===================================== */
-
-    // filter() devuelve todas las cuentas cuyo usuarioId corresponda al usuario
     obtenerCuentasDeUsuario(usuarioId) {
-
         return this.cuentas.filter(
-            (cuenta) =>
-                cuenta.usuarioId ===
-                usuarioId,
+            (cuenta) => cuenta.usuarioId === usuarioId
         );
     }
 
-
-    /* =====================================
-       REGISTRAR MOVIMIENTO
-    ===================================== */
+    /* =========================================
+       MOVIMIENTOS
+    ========================================= */
     registrarMovimiento(movimiento) {
-
-        this.movimientos.push(
-            movimiento,
-        );
-
+        this.movimientos.push(movimiento);
         return movimiento;
     }
 
+    obtenerMovimientosDeCuenta(cuentaId) {
+        return this.movimientos.filter(
+            (movimiento) =>
+                movimiento.cuentaOrigen === cuentaId ||
+                movimiento.cuentaDestino === cuentaId
+        );
+    }
 
-    /* =====================================
-       REALIZAR DEPÓSITO
-    ===================================== */
+    /* =========================================
+       DEPÓSITOS
+    ========================================= */
     realizarDeposito({
         cuentaId,
         monto,
         descripcion = '',
     }) {
+        const montoNumerico = Number(monto);
 
-        /* =================================
-           CONVERTIR MONTO
-        ================================= */
-        const montoNumerico =
-            Number(monto);
-
-        /* =================================
-           VALIDAR MONTO
-        ================================= */
         if (
-            !Number.isFinite(
-                montoNumerico,
-            ) ||
+            !Number.isFinite(montoNumerico) ||
             montoNumerico <= 0
         ) {
             throw new Error(
-                'Monto inválido, el monto debe ser mayor a cero.',
+                'Monto inválido, el monto debe ser mayor a cero.'
             );
         }
 
-        /* =================================
-           BUSCAR CUENTA
-        ================================= */
-        const cuenta =
-            this.buscarCuentaPorId(
-                cuentaId,
-            );
+        const cuenta = this.buscarCuentaPorId(cuentaId);
 
-        /* =================================
-           VALIDAR CUENTA
-        ================================= */
         if (!cuenta) {
-            throw new Error(
-                'La cuenta no existe.',
-            );
+            throw new Error('La cuenta no existe.');
         }
 
-        /* =================================
-           REALIZAR DEPÓSITO
-        ================================= */
-        // La cuenta administra directamente la modificación de su saldo.
-        cuenta.depositar(
-            montoNumerico,
-        );
+        cuenta.depositar(montoNumerico);
 
-        /* =================================
-           CREAR MOVIMIENTO
-        ================================= */
-        const movimiento =
-            new Movimiento({
-                tipo: 'DEPOSITO',
-                monto: montoNumerico,
-                descripcion,
-                cuentaOrigen:
-                    cuenta.id,
-                saldoResultante:
-                    cuenta.saldo,
-            });
+        const movimiento = new Movimiento({
+            tipo: 'DEPOSITO',
+            monto: montoNumerico,
+            descripcion,
+            cuentaOrigen: cuenta.id,
+            saldoResultante: cuenta.saldo,
+        });
 
-        /* =================================
-           REGISTRAR MOVIMIENTO
-        ================================= */
-        this.registrarMovimiento(
-            movimiento,
-        );
+        this.registrarMovimiento(movimiento);
 
-        /* =================================
-           RETORNAR MOVIMIENTO
-        ================================= */
         return movimiento;
     }
 
-    /* =====================================
-       OBTENER MOVIMIENTOS DE UNA CUENTA
-    ===================================== */
-    obtenerMovimientosDeCuenta(
-        cuentaId,
-    ) {
-        /*
-            Recuperamos los movimientos donde la cuenta aparezca como origen
-            o como destino.
-        */
-        return this.movimientos.filter(
-            (movimiento) =>
-                movimiento.cuentaOrigen ===
-                    cuentaId ||
-                movimiento.cuentaDestino ===
-                    cuentaId,
-        );
+    /* =========================================
+       TRANSFERENCIAS
+    ========================================= */
+    realizarTransferencia({
+        cuentaOrigenId,
+        cuentaDestinoId,
+        monto,
+        descripcion = '',
+    }) {
+        const montoNumerico = Number(monto);
+
+        // Validar monto
+        if (
+            !Number.isFinite(montoNumerico) ||
+            montoNumerico <= 0
+        ) {
+            throw new Error(
+                'Monto inválido, el monto debe ser mayor a cero.'
+            );
+        }
+
+        // Buscar cuentas
+        const origen = this.buscarCuentaPorId(cuentaOrigenId);
+        const destino = this.buscarCuentaPorId(cuentaDestinoId);
+
+        if (!origen) {
+            throw new Error('La cuenta origen no existe.');
+        }
+
+        if (!destino) {
+            throw new Error('La cuenta destino no existe.');
+        }
+
+        // Validar estado de las cuentas
+        if (!origen.activa) {
+            throw new Error('La cuenta origen no está activa.');
+        }
+
+        if (!destino.activa) {
+            throw new Error('La cuenta destino no está activa.');
+        }
+
+        // Evitar transferencias a la misma cuenta
+        if (origen.id === destino.id) {
+            throw new Error(
+                'No puedes transferir dinero a la misma cuenta'
+            );
+        }
+
+        // Comprobar saldo suficiente
+        if (origen.saldo < montoNumerico) {
+            throw new Error('Saldo insuficiente');
+        }
+
+        // Actualizar saldos
+        origen.retirar(montoNumerico);
+        destino.depositar(montoNumerico);
+
+        // Movimiento de salida
+        const movimientoEnviado = new Movimiento({
+            tipo: 'TRANSFERENCIA_ENVIADA',
+            monto: montoNumerico,
+            descripcion,
+            cuentaOrigen: origen.id,
+            cuentaDestino: destino.id,
+            saldoResultante: origen.saldo,
+        });
+
+        // Movimiento de entrada
+        const movimientoRecibido = new Movimiento({
+            tipo: 'TRANSFERENCIA_RECIBIDA',
+            monto: montoNumerico,
+            descripcion,
+            cuentaOrigen: origen.id,
+            cuentaDestino: destino.id,
+            saldoResultante: destino.saldo,
+        });
+
+        // Registrar ambos movimientos
+        this.registrarMovimiento(movimientoEnviado);
+        this.registrarMovimiento(movimientoRecibido);
+
+        return {
+            origen,
+            destino,
+            movimientoEnviado,
+            movimientoRecibido,
+        };
     }
 }

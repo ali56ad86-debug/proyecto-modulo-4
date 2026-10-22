@@ -1,28 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-
-    <!-- =========================================
-         CONFIGURACIÓN GENERAL DEL DOCUMENTO
-    ========================================== -->
-
-    <!-- Codificación de caracteres -->
     <meta charset="UTF-8">
 
-    <!-- Adaptación a dispositivos móviles -->
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <!-- Título de la pestaña del navegador -->
-    <title>Sistema de Gestión Bancaria</title>
+    <title>
+        Sistema de Gestión Bancaria
+    </title>
 
-    <!-- =========================================
-         HOJA DE ESTILOS
-    ========================================== -->
-
-    <!-- Conexión con el archivo CSS principal -->
     <link
         rel="stylesheet"
         href="./css/styles.css"
@@ -32,34 +23,197 @@
 <body>
 
     <!-- =========================================
-         CONTENIDO PRINCIPAL
-    ========================================== -->
-    <main class="app">
+         PÁGINA DE AUTENTICACIÓN
+    ========================================= -->
 
-        <!-- Nombre de la aplicación -->
-        <h1>Sistema de Gestión Bancaria</h1>
+    <main class="auth-page">
 
-        <!-- Información del proyecto -->
-        <p>
-            Proyecto Integrador — Módulo 4
-        </p>
+        <header class="auth-header">
+            <h1>
+                Sistema de Gestión Bancaria
+            </h1>
 
-        <!-- Versión actual -->
-        <p>
-            Versión v0.5.0
-        </p>
+            <p>
+                Accede o crea una cuenta
+                para continuar
+            </p>
+
+            <span>
+                Versión v0.10.0
+            </span>
+        </header>
+
+        <!-- =========================================
+             CONTENEDOR DE FORMULARIOS
+        ========================================= -->
+
+        <section class="auth-container">
+
+            <!-- INICIAR SESIÓN -->
+
+            <article class="auth-card">
+
+                <h2>
+                    Iniciar sesión
+                </h2>
+
+                <form
+                    id="formLogin"
+                    novalidate
+                >
+
+                    <div class="form-group">
+
+                        <label for="loginEmail">
+                            Correo electrónico
+                        </label>
+
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            autocomplete="email"
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="loginPassword">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            autocomplete="current-password"
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Iniciar sesión
+                    </button>
+
+                </form>
+
+            </article>
+
+            <!-- CREAR CUENTA -->
+
+            <article class="auth-card">
+
+                <h2>
+                    Crear cuenta
+                </h2>
+
+                <form
+                    id="formRegistro"
+                    novalidate
+                >
+
+                    <div class="form-group">
+
+                        <label for="registroNombre">
+                            Nombre completo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="registroNombre"
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="registroEmail">
+                            Correo electrónico
+                        </label>
+
+                        <input
+                            type="email"
+                            id="registroEmail"
+                            autocomplete="email"
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="registroTelefono">
+                            Teléfono
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="registroTelefono"
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="registroPassword">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="registroPassword"
+                            autocomplete="new-password"
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="registroConfirmPassword">
+                            Confirmar contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="registroConfirmPassword"
+                            autocomplete="new-password"
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Crear cuenta
+                    </button>
+
+                </form>
+
+            </article>
+
+        </section>
 
     </main>
 
     <!-- =========================================
-         JAVASCRIPT PRINCIPAL
-    ========================================== -->
+         SWEETALERT2
+    ========================================= -->
 
-    <!-- Carga del punto de entrada de la aplicación -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
+    ></script>
+
+    <!-- =========================================
+         MÓDULO PRINCIPAL
+    ========================================= -->
+
     <script
         type="module"
         src="./js/main.js"
     ></script>
 
 </body>
+
 </html>
